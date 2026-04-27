@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Xamlizer.SampleApp.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30,0" Spacing="25">
+
+            <BoxView
+                x:Name="ColorSwatch"
+                CornerRadius="8"
+                HeightRequest="60"
+                HorizontalOptions="Fill" />
+
+            <Label
+                x:Name="ColorKeyLabel"
+                FontSize="12"
+                HorizontalOptions="Center"
+                TextColor="{AppThemeBinding Light={StaticResource Gray600},
+                                            Dark={StaticResource Gray300}}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
+
