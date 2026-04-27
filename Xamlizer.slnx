@@ -1,8 +1,10 @@
 <Solution>
   <Folder Name="/Solution Items/">
+    <File Path="Directory.Build.props" />
     <File Path="global.json" />
     <File Path="nuget.config" />
     <File Path="README.md" />
+    <File Path="version.json" />
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/Xamlizer.SampleApp/Xamlizer.SampleApp.csproj" />
