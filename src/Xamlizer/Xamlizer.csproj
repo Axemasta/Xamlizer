@@ -7,6 +7,9 @@
         <Nullable>enable</Nullable>
         <IsRoslynComponent>true</IsRoslynComponent>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <!-- NU5128 is expected for analyzer-only packages with no lib/ folder -->
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Label="NuGet">
@@ -20,7 +23,6 @@
         <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/Axemasta/Xamlizer</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <IncludeSymbols>True</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
@@ -32,6 +34,10 @@
 
     <ItemGroup>
         <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+        <!-- Place the generator assembly where Roslyn/MSBuild expects to find it -->
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <!-- Include the PDB so the snupkg has content -->
+        <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" Condition="Exists('$(OutputPath)\$(AssemblyName).pdb')" />
     </ItemGroup>
 
     <ItemGroup>

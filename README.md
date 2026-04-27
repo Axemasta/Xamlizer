@@ -1,5 +1,7 @@
 # Xamlizer
 
+[![Xamlizer NuGet Shield](https://img.shields.io/nuget/v/xamlizer)](https://www.nuget.org/packages/Xamlizer/)
+
 A Roslyn source generator for .NET MAUI that reads XAML resource dictionaries and generates typed C# constants for every `x:Key` attribute, eliminating magic strings when looking up resources in code.
 
 ## Overview
@@ -7,55 +9,26 @@ A Roslyn source generator for .NET MAUI that reads XAML resource dictionaries an
 XAML resource dictionaries are typically consumed in C# using string literals:
 
 ```csharp
-var color = (Color)Application.Current!.Resources["Primary"];
+var color = (Color)Application.Current.Resources["Primary"];
 ```
 
 If the key is mistyped or renamed in the XAML file, the error only surfaces at runtime. Xamlizer generates a static class at compile time so the same lookup becomes:
 
 ```csharp
-var color = (Color)Application.Current!.Resources[Colors.Color.Primary];
+var color = (Color)Application.Current.Resources[ColorKeys.Color.Primary];
 ```
 
-The constant `Colors.Color.Primary` is checked by the compiler. Rename the resource in XAML and the build fails immediately, pointing you to every site that needs updating.
-
-Xamlizer works as a Roslyn Incremental Source Generator. It runs during compilation, adds no runtime dependency to your app, and integrates with any editor that supports Roslyn analyzers.
-
-## Installation
-
-### NuGet (recommended)
-
-Once the package is published, add it to your project:
-
-```xml
-<PackageReference Include="Xamlizer" Version="x.y.z">
-  <PrivateAssets>all</PrivateAssets>
-  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-</PackageReference>
-```
-
-### Same-solution project reference
-
-If you are consuming Xamlizer from within the same solution, reference it as an analyzer:
-
-```xml
-<ProjectReference Include="path\to\Xamlizer.csproj"
-                  OutputItemType="Analyzer"
-                  ReferenceOutputAssembly="false" />
-```
+The constant `ColorKeys.Color.Primary` is checked by the compiler. Rename the resource in XAML and the build fails immediately, pointing you to every site that needs updating.
 
 ## Setup
 
-After adding the reference, tell Xamlizer which XAML files to process by adding them as `AdditionalFiles`:
+Install via NuGet:
 
 ```xml
-<ItemGroup>
-  <AdditionalFiles Include="Resources\Styles\Colors.xaml" />
-</ItemGroup>
+<PackageReference Include="Xamlizer" Version="1.0.3-pre" />
 ```
 
-You can list multiple files. Each file produces one generated class named after the file.
-
-The generated class is placed in your project's root namespace, which Xamlizer reads from the `RootNamespace` MSBuild property automatically. No additional configuration is required.
+> Any xaml files you wish to use must be included as `AdditionalFiles` in your `.csproj`. Fortunately if they are in the `Resources/Styles` directory of your maui app, this will already be the case.
 
 ## Generated Output
 
