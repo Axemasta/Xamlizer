@@ -45,4 +45,10 @@
       <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
     </ItemGroup>
 
+    <ItemGroup>
+      <!-- Ship the MSBuild targets so consuming projects get the XamlizerInput item group automatically. -->
+      <!-- Use .targets (not .props): NuGet imports .targets at the bottom of evaluation, after user items. -->
+      <None Include="build\Xamlizer.targets" Pack="true" PackagePath="build\" />
+    </ItemGroup>
+
 </Project>

@@ -20,11 +20,23 @@ public sealed class XamlizerGenerator : IIncrementalGenerator
     /// </summary>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Stage 1: Read content of every .xaml AdditionalFile.
+        // Stage 1: Read content of .xaml AdditionalFiles that have opted in via XamlizerEnabled metadata.
+        // Files added globally (e.g. by MauiXamlInflator=SourceGen) are skipped unless they also appear
+        // as <XamlizerInput> items, which the build/Xamlizer.props file translates into AdditionalFiles
+        // with XamlizerEnabled=true.
         var xamlContents = context.AdditionalTextsProvider
             .Where(static f => f.Path.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
-            .Select(static (file, ct) =>
+            .Combine(context.AnalyzerConfigOptionsProvider)
+            .Where(static pair =>
             {
+                var (file, optionsProvider) = pair;
+                var fileOptions = optionsProvider.GetOptions(file);
+                return fileOptions.TryGetValue("build_metadata.AdditionalFiles.XamlizerEnabled", out var val)
+                    && string.Equals(val, "true", StringComparison.OrdinalIgnoreCase);
+            })
+            .Select(static (pair, ct) =>
+            {
+                var (file, _) = pair;
                 var content = file.GetText(ct)?.ToString() ?? string.Empty;
                 var fileName = Path.GetFileNameWithoutExtension(file.Path);
                 return (file.Path, FileName: fileName, Content: content);

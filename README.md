@@ -28,7 +28,16 @@ Install via NuGet:
 <PackageReference Include="Xamlizer" Version="1.0.3-pre" />
 ```
 
-> Any xaml files you wish to use must be included as `AdditionalFiles` in your `.csproj`. Fortunately if they are in the `Resources/Styles` directory of your maui app, this will already be the case.
+Then opt individual XAML resource dictionaries into Xamlizer by adding them as `XamlizerInput` items in your `.csproj`:
+
+```xml
+<ItemGroup>
+  <XamlizerInput Include="Resources\Styles\Colors.xaml" />
+  <XamlizerInput Include="Resources\Styles\Styles.xaml" />
+</ItemGroup>
+```
+
+> This assumes you are using source generated xaml inflator. If you are using` XamlC`, you will likely need to mark these files as `AdditionalFiles` as well as specifying `XamlizerInput`
 
 ## Generated Output
 
@@ -74,6 +83,8 @@ namespace YourApp
 
 Resources are grouped by their element type (the XML local name). Within each group, constants appear in the order they occur in the file. If the same type appears in multiple places in the file (common with `Color` blocks separated by `SolidColorBrush` entries), all keys for that type are collected into one nested class in first-occurrence order.
 
+The generated class name is the file name + `Keys` suffix (for example, `Colors.xaml` produces `ColorsKeys`). The namespace is the same as the project root namespace.
+
 ## Using the Generated Code
 
 Look up a resource using the generated constant instead of a string literal:
@@ -96,18 +107,6 @@ private static readonly string[] ThemeColors =
     ColorsKeys.Color.Tertiary,
 ];
 ```
-
-## Naming Conflicts
-
-The generated class name uses a `Keys` suffix (for example, `Colors.xaml` produces `ColorsKeys`) to reduce collisions with common framework types. If a conflict still occurs, resolve it with a `using` alias:
-
-```csharp
-using AppColors = YourApp.ColorsKeys;
-
-var color = (Color)Application.Current!.Resources[AppColors.Color.Primary];
-```
-
-The alias can be placed at the top of a single file or in a `GlobalUsings.cs` file to apply it project-wide.
 
 ## What Gets Processed
 
@@ -152,4 +151,4 @@ public const string _class = "class";
 
 - **Non-literal `x:Key` values.** Xamlizer reads `x:Key` as a plain string attribute. Dynamic or markup-extension-based keys (such as `x:Key="{x:Type SomeType}"`) are not supported and are skipped.
 
-- **Build action requirement.** Files must be explicitly added as `<AdditionalFiles>` in your project. MAUI's `<MauiXaml>` build action is separate and does not cause Xamlizer to process a file.
+- **Build action requirement.** Files must be explicitly opted in using `<XamlizerInput Include="..." />` in your project file. When the Xamlizer NuGet package is installed, the `build/Xamlizer.targets` file it ships is automatically imported and maps `XamlizerInput` items to `AdditionalFiles` with the required metadata. Files that are added as `AdditionalFiles` by other means (for example by `MauiXamlInflator=SourceGen`) are **not** processed unless they also appear as `XamlizerInput`.

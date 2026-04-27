@@ -77,4 +77,17 @@
                           ReferenceOutputAssembly="false" />
     </ItemGroup>
 
+    <ItemGroup>
+        <!-- Opt specific resource dictionaries into Xamlizer key generation. -->
+        <XamlizerInput Include="Resources\Styles\*.xaml" />
+    </ItemGroup>
+
+    <!--
+        When referencing Xamlizer via ProjectReference (not NuGet) the build/Xamlizer.targets file is not
+        auto-imported, so we import it manually here to get the XamlizerInput item group support.
+        IMPORTANT: this import must come AFTER the <XamlizerInput> items above so that @(XamlizerInput)
+        is already populated when the targets file maps it into <AdditionalFiles>.
+    -->
+    <Import Project="..\..\src\Xamlizer\build\Xamlizer.targets" />
+
 </Project>
