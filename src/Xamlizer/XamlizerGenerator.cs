@@ -7,9 +7,17 @@ using Xamlizer.Models;
 
 namespace Xamlizer;
 
+/// <summary>
+/// Roslyn incremental source generator that reads XAML resource dictionaries added as
+/// AdditionalFiles and emits a typed static class containing <c>public const string</c>
+/// members for every <c>x:Key</c> attribute found.
+/// </summary>
 [Generator]
 public sealed class XamlizerGenerator : IIncrementalGenerator
 {
+    /// <summary>
+    /// Registers the incremental pipeline stages with the generator host.
+    /// </summary>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Stage 1: Read content of every .xaml AdditionalFile.
