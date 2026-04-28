@@ -1,14 +1,4 @@
 <Project>
-  <!--
-    Map every <XamlizerInput> item into <AdditionalFiles> with the XamlizerEnabled
-    metadata flag so the Xamlizer source generator can distinguish files that have
-    explicitly opted in from those added globally (e.g. by MauiXamlInflator=SourceGen).
-
-    This is a .targets file (not .props) so that NuGet auto-imports it at the BOTTOM
-    of project evaluation, after the consuming project's own <XamlizerInput> items
-    have been defined. A .props file would be imported at the top, before user items
-    exist, making @(XamlizerInput) always empty.
-  -->
   <ItemGroup>
     <AdditionalFiles Include="@(XamlizerInput)" XamlizerEnabled="true" />
   </ItemGroup>

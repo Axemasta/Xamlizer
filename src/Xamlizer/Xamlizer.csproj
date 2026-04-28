@@ -7,12 +7,14 @@
         <Nullable>enable</Nullable>
         <IsRoslynComponent>true</IsRoslynComponent>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
-        <!-- NU5128 is expected for analyzer-only packages with no lib/ folder -->
+        <IncludeBuildOutput>true</IncludeBuildOutput>
+        <IsPackable>true</IsPackable>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Label="NuGet">
+        <Title>Xamlizer</Title>
+        <Description>A Roslyn source generator for .NET MAUI that reads XAML resource dictionaries and generates typed C# constants for every x:Key attribute, eliminating magic strings when looking up resources in code.</Description>
         <Authors>Axemasta</Authors>
         <Owners>Axemasta</Owners>
         <NeutralLanguage>en</NeutralLanguage>
@@ -28,27 +30,19 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+        <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+    </ItemGroup>
+    
+    <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
-        <!-- Place the generator assembly where Roslyn/MSBuild expects to find it -->
+        <None Include="..\..\README.md" PackagePath="\" Pack="true"/>
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <!-- Include the PDB so the snupkg has content -->
         <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" Condition="Exists('$(OutputPath)\$(AssemblyName).pdb')" />
     </ItemGroup>
-
-    <ItemGroup>
-      <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
-      <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <!-- Ship the MSBuild targets so consuming projects get the XamlizerInput item group automatically. -->
-      <!-- Use .targets (not .props): NuGet imports .targets at the bottom of evaluation, after user items. -->
-      <None Include="build\Xamlizer.targets" Pack="true" PackagePath="build\" />
-    </ItemGroup>
-
+    
 </Project>
