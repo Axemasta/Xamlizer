@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <!-- Semicolon-separated list of fully-qualified XamlizerInput paths, exposed to the
+         source generator. The generator uses this list (rather than AdditionalFiles metadata)
+         to identify which files to process. This avoids conflicts with MAUI and other frameworks
+         that also add the same XAML files to AdditionalFiles under their own metadata. -->
+    <XamlizerInputFiles>@(XamlizerInput->'%(FullPath)')</XamlizerInputFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="XamlizerInputFiles" />
+  </ItemGroup>
+</Project>

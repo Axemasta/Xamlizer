@@ -75,6 +75,11 @@
         <ProjectReference Include="..\..\src\Xamlizer\Xamlizer.csproj"
                           OutputItemType="Analyzer"
                           ReferenceOutputAssembly="false" />
+
+        <!-- Opt specific resource dictionaries into Xamlizer key generation. -->
+        <XamlizerInput Include="Resources\Styles\*.xaml" />
     </ItemGroup>
+    
+    <Import Project="..\..\src\Xamlizer\build\Xamlizer.targets" />
 
 </Project>

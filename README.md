@@ -15,12 +15,14 @@ var color = (Color)Application.Current.Resources["Primary"];
 If the key is mistyped or renamed in the XAML file, the error only surfaces at runtime. Xamlizer generates a static class at compile time so the same lookup becomes:
 
 ```csharp
-var color = (Color)Application.Current.Resources[ColorKeys.Color.Primary];
+var color = (Color)Application.Current.Resources[ColorsKeys.Color.Primary];
 ```
 
-The constant `ColorKeys.Color.Primary` is checked by the compiler. Rename the resource in XAML and the build fails immediately, pointing you to every site that needs updating.
+The constant `ColorsKeys.Color.Primary` is checked by the compiler. Rename the resource in XAML and the build fails immediately, pointing you to every site that needs updating.
 
 ## Setup
+
+### NuGet (recommended)
 
 Install via NuGet:
 
@@ -28,7 +30,40 @@ Install via NuGet:
 <PackageReference Include="Xamlizer" Version="1.0.3-pre" />
 ```
 
-> Any xaml files you wish to use must be included as `AdditionalFiles` in your `.csproj`. Fortunately if they are in the `Resources/Styles` directory of your maui app, this will already be the case.
+The package automatically imports `build/Xamlizer.targets`, which wires up the `XamlizerInput` item group. No additional MSBuild setup is required.
+
+### Local project reference
+
+When referencing Xamlizer directly as a project (for example, from a sample app in the same repository), add the project reference as an analyzer and import the targets file manually:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="path\to\Xamlizer\Xamlizer.csproj"
+                    OutputItemType="Analyzer"
+                    ReferenceOutputAssembly="false" />
+</ItemGroup>
+
+<Import Project="path\to\Xamlizer\build\Xamlizer.targets" />
+```
+
+### Opting files in
+
+Regardless of how Xamlizer is referenced, opt individual XAML resource dictionaries into key generation by adding them as `XamlizerInput` items in your `.csproj`. These must appear **before** the `<Import>` of `Xamlizer.targets` (or before the closing `</Project>` tag when using the NuGet package):
+
+```xml
+<ItemGroup>
+  <XamlizerInput Include="Resources\Styles\Colors.xaml" />
+  <XamlizerInput Include="Resources\Styles\Styles.xaml" />
+</ItemGroup>
+```
+
+Glob patterns are supported, so you can include an entire folder at once:
+
+```xml
+<ItemGroup>
+  <XamlizerInput Include="Resources\Styles\*.xaml" />
+</ItemGroup>
+```
 
 ## Generated Output
 
@@ -74,6 +109,8 @@ namespace YourApp
 
 Resources are grouped by their element type (the XML local name). Within each group, constants appear in the order they occur in the file. If the same type appears in multiple places in the file (common with `Color` blocks separated by `SolidColorBrush` entries), all keys for that type are collected into one nested class in first-occurrence order.
 
+The generated class name is the file name + `Keys` suffix (for example, `Colors.xaml` produces `ColorsKeys`). The namespace is the same as the project root namespace.
+
 ## Using the Generated Code
 
 Look up a resource using the generated constant instead of a string literal:
@@ -96,18 +133,6 @@ private static readonly string[] ThemeColors =
     ColorsKeys.Color.Tertiary,
 ];
 ```
-
-## Naming Conflicts
-
-The generated class name uses a `Keys` suffix (for example, `Colors.xaml` produces `ColorsKeys`) to reduce collisions with common framework types. If a conflict still occurs, resolve it with a `using` alias:
-
-```csharp
-using AppColors = YourApp.ColorsKeys;
-
-var color = (Color)Application.Current!.Resources[AppColors.Color.Primary];
-```
-
-The alias can be placed at the top of a single file or in a `GlobalUsings.cs` file to apply it project-wide.
 
 ## What Gets Processed
 
@@ -152,4 +177,4 @@ public const string _class = "class";
 
 - **Non-literal `x:Key` values.** Xamlizer reads `x:Key` as a plain string attribute. Dynamic or markup-extension-based keys (such as `x:Key="{x:Type SomeType}"`) are not supported and are skipped.
 
-- **Build action requirement.** Files must be explicitly added as `<AdditionalFiles>` in your project. MAUI's `<MauiXaml>` build action is separate and does not cause Xamlizer to process a file.
+- **Build action requirement.** Files must be explicitly opted in using `<XamlizerInput Include="..." />` in your project file. When the Xamlizer NuGet package is installed, the `build/Xamlizer.targets` file is automatically imported and collects the opted-in paths into a build property (`XamlizerInputFiles`) that the generator reads. Files that appear in `AdditionalFiles` by other means are **not** processed unless they also appear as `XamlizerInput` items.

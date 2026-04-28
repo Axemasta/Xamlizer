@@ -20,17 +20,49 @@ public sealed class XamlizerGenerator : IIncrementalGenerator
     /// </summary>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // Stage 1: Read content of every .xaml AdditionalFile.
+        // Stage 1: Read the XamlizerInputFiles build property, which contains a
+        // semicolon-separated list of fully-qualified paths that the user opted in via
+        // <XamlizerInput> items.  Using a build property (rather than AdditionalFiles
+        // metadata) avoids ordering conflicts with MAUI and other frameworks that also
+        // add the same XAML files to AdditionalFiles under their own metadata, which
+        // would otherwise override a XamlizerEnabled flag via the "last value wins"
+        // rule in the generated MSBuild editor config.
+        var xamlizerInputFiles = context.AnalyzerConfigOptionsProvider
+            .Select(static (options, _) =>
+            {
+                options.GlobalOptions.TryGetValue("build_property.XamlizerInputFiles", out var files);
+                return files ?? string.Empty;
+            });
+
+        // Stage 2: Filter AdditionalFiles to .xaml files whose paths are listed in the
+        // XamlizerInputFiles property, then read their content.
         var xamlContents = context.AdditionalTextsProvider
             .Where(static f => f.Path.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
-            .Select(static (file, ct) =>
+            .Combine(xamlizerInputFiles)
+            .Where(static pair =>
             {
+                var (file, files) = pair;
+                if (string.IsNullOrWhiteSpace(files))
+                    return false;
+
+                foreach (var entry in files.Split(';'))
+                {
+                    var path = entry.Trim();
+                    if (path.Length > 0 && string.Equals(path, file.Path, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+
+                return false;
+            })
+            .Select(static (pair, ct) =>
+            {
+                var (file, _) = pair;
                 var content = file.GetText(ct)?.ToString() ?? string.Empty;
                 var fileName = Path.GetFileNameWithoutExtension(file.Path);
                 return (file.Path, FileName: fileName, Content: content);
             });
 
-        // Stage 2: Parse each XAML file into a result/error value.
+        // Stage 3: Parse each XAML file into a result/error value.
         var parsed = xamlContents.Select(static (item, _) =>
         {
             if (string.IsNullOrEmpty(item.Content))
@@ -47,7 +79,7 @@ public sealed class XamlizerGenerator : IIncrementalGenerator
             }
         });
 
-        // Stage 3: Get the consuming project's root namespace and project directory.
+        // Stage 4: Get the consuming project's root namespace and project directory.
         var buildProps = context.AnalyzerConfigOptionsProvider
             .Select(static (options, _) =>
             {
@@ -59,7 +91,7 @@ public sealed class XamlizerGenerator : IIncrementalGenerator
                 );
             });
 
-        // Stage 4: Generate the C# source string for each parsed file + namespace pair.
+        // Stage 5: Generate the C# source string for each parsed file + namespace pair.
         var generated = parsed.Combine(buildProps).Select(static (pair, _) =>
         {
             var ((path, fileName, parseResult, error), props) = pair;
@@ -71,7 +103,7 @@ public sealed class XamlizerGenerator : IIncrementalGenerator
             return (HintName: BuildHintName(path, props.ProjectDir), Source: (string?)source, Error: (string?)null, Path: path);
         });
 
-        // Stage 5: Register source output — only I/O happens here.
+        // Stage 6: Register source output — only I/O happens here.
         context.RegisterSourceOutput(generated, static (ctx, item) =>
         {
             if (item.Error is not null)
@@ -133,4 +165,3 @@ public sealed class XamlizerGenerator : IIncrementalGenerator
         return Path.GetFileName(fullPath);
     }
 }
-
