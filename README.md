@@ -15,12 +15,14 @@ var color = (Color)Application.Current.Resources["Primary"];
 If the key is mistyped or renamed in the XAML file, the error only surfaces at runtime. Xamlizer generates a static class at compile time so the same lookup becomes:
 
 ```csharp
-var color = (Color)Application.Current.Resources[ColorKeys.Color.Primary];
+var color = (Color)Application.Current.Resources[ColorsKeys.Color.Primary];
 ```
 
-The constant `ColorKeys.Color.Primary` is checked by the compiler. Rename the resource in XAML and the build fails immediately, pointing you to every site that needs updating.
+The constant `ColorsKeys.Color.Primary` is checked by the compiler. Rename the resource in XAML and the build fails immediately, pointing you to every site that needs updating.
 
 ## Setup
+
+### NuGet (recommended)
 
 Install via NuGet:
 
@@ -28,7 +30,25 @@ Install via NuGet:
 <PackageReference Include="Xamlizer" Version="1.0.3-pre" />
 ```
 
-Then opt individual XAML resource dictionaries into Xamlizer by adding them as `XamlizerInput` items in your `.csproj`:
+The package automatically imports `build/Xamlizer.targets`, which wires up the `XamlizerInput` item group. No additional MSBuild setup is required.
+
+### Local project reference
+
+When referencing Xamlizer directly as a project (for example, from a sample app in the same repository), add the project reference as an analyzer and import the targets file manually:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include="path\to\Xamlizer\Xamlizer.csproj"
+                    OutputItemType="Analyzer"
+                    ReferenceOutputAssembly="false" />
+</ItemGroup>
+
+<Import Project="path\to\Xamlizer\build\Xamlizer.targets" />
+```
+
+### Opting files in
+
+Regardless of how Xamlizer is referenced, opt individual XAML resource dictionaries into key generation by adding them as `XamlizerInput` items in your `.csproj`. These must appear **before** the `<Import>` of `Xamlizer.targets` (or before the closing `</Project>` tag when using the NuGet package):
 
 ```xml
 <ItemGroup>
@@ -37,7 +57,13 @@ Then opt individual XAML resource dictionaries into Xamlizer by adding them as `
 </ItemGroup>
 ```
 
-> This assumes you are using source generated xaml inflator. If you are using` XamlC`, you will likely need to mark these files as `AdditionalFiles` as well as specifying `XamlizerInput`
+Glob patterns are supported, so you can include an entire folder at once:
+
+```xml
+<ItemGroup>
+  <XamlizerInput Include="Resources\Styles\*.xaml" />
+</ItemGroup>
+```
 
 ## Generated Output
 
@@ -151,4 +177,4 @@ public const string _class = "class";
 
 - **Non-literal `x:Key` values.** Xamlizer reads `x:Key` as a plain string attribute. Dynamic or markup-extension-based keys (such as `x:Key="{x:Type SomeType}"`) are not supported and are skipped.
 
-- **Build action requirement.** Files must be explicitly opted in using `<XamlizerInput Include="..." />` in your project file. When the Xamlizer NuGet package is installed, the `build/Xamlizer.targets` file it ships is automatically imported and maps `XamlizerInput` items to `AdditionalFiles` with the required metadata. Files that are added as `AdditionalFiles` by other means (for example by `MauiXamlInflator=SourceGen`) are **not** processed unless they also appear as `XamlizerInput`.
+- **Build action requirement.** Files must be explicitly opted in using `<XamlizerInput Include="..." />` in your project file. When the Xamlizer NuGet package is installed, the `build/Xamlizer.targets` file is automatically imported and collects the opted-in paths into a build property (`XamlizerInputFiles`) that the generator reads. Files that appear in `AdditionalFiles` by other means are **not** processed unless they also appear as `XamlizerInput` items.

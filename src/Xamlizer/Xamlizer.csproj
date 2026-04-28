@@ -7,7 +7,7 @@
         <Nullable>enable</Nullable>
         <IsRoslynComponent>true</IsRoslynComponent>
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-        <IncludeBuildOutput>true</IncludeBuildOutput>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
         <IsPackable>true</IsPackable>
         <NoWarn>$(NoWarn);NU5128</NoWarn>
     </PropertyGroup>
@@ -43,6 +43,7 @@
         <None Include="..\..\README.md" PackagePath="\" Pack="true"/>
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="$(OutputPath)\$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" Condition="Exists('$(OutputPath)\$(AssemblyName).pdb')" />
+        <None Include="build\Xamlizer.targets" Pack="true" PackagePath="build\" />
     </ItemGroup>
     
 </Project>
