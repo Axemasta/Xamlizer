@@ -27,7 +27,7 @@ The constant `ColorsKeys.Color.Primary` is checked by the compiler. Rename the r
 Install via NuGet:
 
 ```xml
-<PackageReference Include="Xamlizer" Version="1.0.3-pre" />
+<PackageReference Include="Xamlizer" Version="1.0.10" />
 ```
 
 The package automatically imports `build/Xamlizer.targets`, which wires up the `XamlizerInput` item group. No additional MSBuild setup is required.

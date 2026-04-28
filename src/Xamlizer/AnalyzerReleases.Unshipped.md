@@ -3,8 +3,3 @@
 
 ### New Rules
 
-Rule ID | Category | Severity | Notes
---------|----------|----------|-------
-XAM001 | Xamlizer | Error    | Invalid XAML file
-
-
